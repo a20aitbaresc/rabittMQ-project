@@ -25,7 +25,6 @@
     const messages = document.getElementById('messages');
 
     ws.onmessage = function(event) {
-      const message = document.createElement('li');
       message.textContent = event.data;
       messages.appendChild(message);
     };

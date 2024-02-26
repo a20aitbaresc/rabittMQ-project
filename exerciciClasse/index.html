@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="chat-container">
+        <header class="chat-header">
+            <h2>Chat</h2>
+        </header>
+        <ul id="messages" class="chat-messages"></ul>
+        <form id="messageForm" class="message-form">
+            <input type="text" id="messageInput" placeholder="Type a message..." autocomplete="off">
+            <button type="submit">Send</button>
+        </form>
+    </div>
+
+    <script>
+        // Inicializa una nueva conexión WebSocket al servidor
+        const ws = new WebSocket('ws://localhost:3000');
+        const form = document.getElementById('messageForm');
+        const messageInput = document.getElementById('messageInput');
+        const messages = document.getElementById('messages');
+
+        ws.onmessage = function (event) {
+            const message = document.createElement('li');
+            // Completar la función onmessage
+        };
+
+        form.onsubmit = function (event) {
+            event.preventDefault();
+            // Envía el mensaje al servidor y limpia el input
+            // Completar la función onsubmit
+        };
+    </script>
+</body>
+
+</html>
