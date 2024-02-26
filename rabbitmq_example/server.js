@@ -7,33 +7,42 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 const PORT = 3000;
-const QUEUE = 'chat_messages';
+const EXCHANGE_PREFIX = 'chat_exchange_';
 
 async function connectRabbitMQ() {
   const conn = await amqp.connect('amqp://localhost');
   const channel = await conn.createChannel();
-  await channel.assertQueue(QUEUE, { durable: false });
-  return { conn, channel };
+  return channel;
 }
 
-let rabbitMQChannel;
+let clientChannels = {};
 
-connectRabbitMQ().then(({ channel }) => {
-  rabbitMQChannel = channel;
-
-  channel.consume(QUEUE, (msg) => {
-    wss.clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(msg.content.toString());
+connectRabbitMQ().then((channel) => {
+  wss.on('connection', (ws) => {
+    let clientChannel;
+    ws.on('message', async (data) => {
+      const { channelName, message } = JSON.parse(data);
+      if (!clientChannel) {
+        // Create a new channel for the client if it doesn't exist
+        clientChannel = await channel;
+        clientChannels[ws] = clientChannel;
+      }
+      const exchangeName = EXCHANGE_PREFIX + channelName;
+      try {
+        await clientChannel.assertExchange(exchangeName, 'fanout', { durable: false });
+        await clientChannel.publish(exchangeName, '', Buffer.from(message));
+      } catch (error) {
+        console.error('Error publishing message:', error.message);
       }
     });
-    channel.ack(msg);
-  });
-});
 
-wss.on('connection', (ws) => {
-  ws.on('message', (message) => {
-    rabbitMQChannel.sendToQueue(QUEUE, Buffer.from(message));
+    ws.on('close', () => {
+      // Clean up when client disconnects
+      if (clientChannels[ws]) {
+        clientChannels[ws].close();
+        delete clientChannels[ws];
+      }
+    });
   });
 });
 

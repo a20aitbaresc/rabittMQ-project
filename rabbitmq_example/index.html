@@ -14,6 +14,10 @@
     <ul id="messages" class="chat-messages"></ul>
     <form id="messageForm" class="message-form">
       <input type="text" id="messageInput" placeholder="Type a message..." autocomplete="off">
+      <select id="channelSelect">
+        <option value="channel1">Channel 1</option>
+        <option value="channel2">Channel 2</option>
+      </select>
       <button type="submit">Send</button>
     </form>
   </div>
@@ -22,18 +26,23 @@
     const ws = new WebSocket('ws://localhost:3000');
     const form = document.getElementById('messageForm');
     const messageInput = document.getElementById('messageInput');
+    const channelSelect = document.getElementById('channelSelect');
     const messages = document.getElementById('messages');
 
     ws.onmessage = function(event) {
+      const data = JSON.parse(event.data);
       const message = document.createElement('li');
-      message.textContent = event.data;
+      message.textContent = data.message;
       messages.appendChild(message);
     };
 
     form.onsubmit = function(event) {
       event.preventDefault();
-      if (messageInput.value.trim()) {
-        ws.send(messageInput.value);
+      const channelName = channelSelect.value;
+      const message = messageInput.value.trim();
+      if (message) {
+        const data = JSON.stringify({ channelName, message });
+        ws.send(data);
         messageInput.value = '';
       }
     };
