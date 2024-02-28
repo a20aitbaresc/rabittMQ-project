@@ -10,8 +10,10 @@ const PORT = 3000;
 const QUEUE = 'chat_messages';
 
 async function connectRabbitMQ() {
-  // Conecta a RabbitMQ y crea un canal
-  // Completar la función connectRabbitMQ
+  const conn = await amqp.connect('amqp://localhost');
+  const channel = await conn.createChannel();
+  await channel.assertQueue(QUEUE, { durable: false });
+  return { conn, channel };
 }
 
 let rabbitMQChannel;
