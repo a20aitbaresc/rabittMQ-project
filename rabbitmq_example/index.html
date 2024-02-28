@@ -25,15 +25,17 @@
     const messages = document.getElementById('messages');
 
     ws.onmessage = function(event) {
-      message.textContent = event.data;
-      messages.appendChild(message);
+      // Corrección: Crea un nuevo elemento li para cada mensaje
+      const messageElement = document.createElement('li');
+      messageElement.textContent = event.data;
+      messages.appendChild(messageElement); // Añade el mensaje al contenedor de mensajes
     };
 
     form.onsubmit = function(event) {
       event.preventDefault();
       if (messageInput.value.trim()) {
-        ws.send(messageInput.value);
-        messageInput.value = '';
+        ws.send(messageInput.value); // Enviar mensaje al servidor
+        messageInput.value = ''; // Limpiar el campo de entrada después de enviar
       }
     };
   </script>
