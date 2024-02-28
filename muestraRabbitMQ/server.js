@@ -49,20 +49,29 @@ function sendMessageToClients(msg, queueName) {
 
 wss.on('connection', (ws) => {
     ws.on('message', (message) => {
-        const { channel, text } = JSON.parse(message);
-        ws.channel = channel;
-        const queueName = channel === 'channel1' ? QUEUE_CHANNEL_1 : QUEUE_CHANNEL_2;
-        console.log('Enviando mensaje a RabbitMQ:', text);
-        rabbitMQChannel.sendToQueue(queueName, Buffer.from(text));
+        const data = JSON.parse(message);
+        if (data.type === 'changeChannel') {
+            // Actualiza el canal al que está suscrito este WebSocket
+            ws.channel = data.channel;
+            console.log(`Cliente cambió al canal: ${data.channel}`);
+        } else if (data.type === 'subscribe') {
+            // Establece el canal al que está suscrito este WebSocket
+            ws.channel = data.channel;
+            console.log(`Cliente suscrito al canal: ${data.channel}`);
+        } else {
+            // Envía el mensaje a RabbitMQ
+            const { channel, text } = data;
+            const queueName = channel === 'channel1' ? QUEUE_CHANNEL_1 : QUEUE_CHANNEL_2;
+            console.log('Enviando mensaje a RabbitMQ:', text);
+            rabbitMQChannel.sendToQueue(queueName, Buffer.from(text));
+        }
     });
-
-    // Log cuando se conecta un cliente
-    console.log('Nuevo cliente conectado');
 
     ws.on('close', () => {
         console.log('Cliente desconectado');
     });
 });
+
 
 server.listen(PORT, () => console.log(`Servidor en ejecución en http://localhost:${PORT}`));
 app.use(express.static('.'));

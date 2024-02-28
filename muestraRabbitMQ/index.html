@@ -30,9 +30,24 @@
         const messageInput = document.getElementById('messageInput');
         const channelSelect = document.getElementById('channelSelect');
         const messages = document.getElementById('messages');
-
-        ws.onopen = function (event) {
+    
+        ws.onopen = function(event) {
             console.log('Conexión WebSocket abierta');
+            // Enviar mensaje de suscripción inicial al conectarse
+            const initialSubscription = JSON.stringify({
+                type: 'subscribe',
+                channel: channelSelect.value // Asume que ya tienes un valor seleccionado o lo estableces por defecto
+            });
+            ws.send(initialSubscription);
+        };
+    
+        // Agrega aquí el manejador de eventos de cambio de canal
+        channelSelect.onchange = function() {
+            const channelChangeMessage = JSON.stringify({
+                type: 'changeChannel',
+                channel: channelSelect.value
+            });
+            ws.send(channelChangeMessage);
         };
 
         ws.onmessage = function (event) {
